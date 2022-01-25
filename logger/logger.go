@@ -1,58 +1,71 @@
 package logger
 
 import (
-	"bytes"
+	"context"
 	"errors"
-	"fmt"
-	"io"
-	"log"
-	"sync"
 )
 
 type (
+	// Logger is the fundamental interface for all log operations. Log creates a
+	// log event from keyvals, a variadic sequence of alternating keys and values.
+	// Implementations must be safe for concurrent use by multiple goroutines. In
+	// particular, any implementation of Logger that appends to keyvals or
+	// modifies or retains any of its elements must make a copy first.
 	Logger interface {
-		Log(keyvalues ...interface{})
+		Log(keyvals ...interface{})
 	}
 
-	stdLogger struct {
-		log  *log.Logger
-		pool sync.Pool
+	contextualLogger struct {
+		log       Logger
+		ctx       context.Context
+		prefix    []interface{}
+		hasValuer bool
 	}
 )
 
 var (
 	// ErrMissingValue is appended to keyvalues slices with odd length to substitute the missing value.
-	ErrMissingValue = errors.New("(missing value)")
-
-	_ Logger = (*stdLogger)(nil)
+	ErrMissingValue        = errors.New("(missing value)")
+	_               Logger = (*contextualLogger)(nil)
 )
 
-func NewStdLogger(output io.Writer) *stdLogger {
-	return &stdLogger{
-		log: log.New(output, "", log.LstdFlags),
-		pool: sync.Pool{
-			New: func() interface{} {
-				return bytes.NewBuffer(nil)
-			},
-		},
+func (cl *contextualLogger) Log(keyvals ...interface{}) {
+	kvs := make([]interface{}, 0, len(cl.prefix)+len(keyvals))
+	kvs = append(kvs, cl.prefix...)
+	if cl.hasValuer {
+		bindValues(cl.ctx, kvs)
+	}
+	kvs = append(kvs, keyvals...)
+	cl.log.Log(kvs...)
+}
+
+func With(l Logger, keyvals ...interface{}) Logger {
+	if cl, ok := l.(*contextualLogger); ok {
+		kvs := make([]interface{}, 0, len(cl.prefix)+len(keyvals)) // https://github.com/uber-go/guide/blob/master/style.md#specifying-slice-capacity
+		kvs = append(kvs, cl.prefix...)
+		kvs = append(kvs, keyvals...)
+		return &contextualLogger{
+			log:       cl.log,
+			prefix:    kvs,
+			hasValuer: containsValuer(kvs),
+			ctx:       cl.ctx,
+		}
+	}
+	return &contextualLogger{
+		log:       l,
+		prefix:    keyvals,
+		hasValuer: containsValuer(keyvals),
 	}
 }
 
-func (logger *stdLogger) Log(keyvalues ...interface{}) {
-	if len(keyvalues) == 0 {
-		return
+func WithContext(ctx context.Context, l Logger) Logger {
+	if cl, ok := l.(*contextualLogger); ok {
+		return &contextualLogger{
+			log:       cl.log,
+			prefix:    cl.prefix,
+			hasValuer: cl.hasValuer,
+			ctx:       ctx,
+		}
 	}
-	if len(keyvalues)&1 == 1 {
-		keyvalues = append(keyvalues, ErrMissingValue.Error())
-	}
-
-	buffer := logger.pool.Get().(*bytes.Buffer)
-	defer logger.pool.Put(buffer)
-	defer buffer.Reset()
-
-	for i := 0; i < len(keyvalues); i += 2 {
-		_, _ = fmt.Fprintf(buffer, " %s=%v", keyvalues[i], keyvalues[i+1])
-	}
-
-	_ = logger.log.Output(4, buffer.String())
+	return &contextualLogger{log: l, ctx: ctx}
 }
