@@ -16,7 +16,7 @@ func (ts *testSpecV1) IsSatisfiedBy(candidate interface{}) bool {
 	return false
 }
 
-func (ts *testSpecV1) Rule() string {
+func (ts *testSpecV1) String() string {
 	return "value >= 10"
 }
 
@@ -28,7 +28,7 @@ func (ts2 *testSpecV2) IsSatisfiedBy(candidate interface{}) bool {
 	return false
 }
 
-func (ts2 *testSpecV2) Rule() string {
+func (ts2 *testSpecV2) String() string {
 	return "value < 80"
 }
 
@@ -38,7 +38,7 @@ func TestSpec(t *testing.T) {
 	var s3 = new(testSpecV2)
 
 	a1 := NewAndSpecification(s1, s2)
-	fmt.Println(a1.Rule())
+	fmt.Println(a1.String())
 	if !a1.IsSatisfiedBy(20) {
 		t.FailNow()
 	}
@@ -47,13 +47,13 @@ func TestSpec(t *testing.T) {
 	}
 
 	a2 := NewAndSpecification(a1, s3)
-	fmt.Println(a2.Rule())
+	fmt.Println(a2.String())
 	if !a2.IsSatisfiedBy(50) {
 		t.FailNow()
 	}
 
 	a3 := NewAndNotCondition(a1, s3)
-	fmt.Println(a3.Rule())
+	fmt.Println(a3.String())
 	if !a3.IsSatisfiedBy(90) {
 		t.FailNow()
 	}
@@ -62,7 +62,7 @@ func TestSpec(t *testing.T) {
 	}
 
 	a4 := NewAnyCondition(s1, a3)
-	fmt.Println(a4.Rule())
+	fmt.Println(a4.String())
 	if !a4.IsSatisfiedBy(40) {
 		t.FailNow()
 	}
