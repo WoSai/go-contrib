@@ -52,7 +52,7 @@ func TestSpec(t *testing.T) {
 		t.FailNow()
 	}
 
-	a3 := NewAndNotCondition(a1, s3)
+	a3 := NewAndNotSpecification(a1, s3)
 	fmt.Println(a3.String())
 	if !a3.IsSatisfiedBy(90) {
 		t.FailNow()
@@ -61,7 +61,7 @@ func TestSpec(t *testing.T) {
 		t.FailNow()
 	}
 
-	a4 := NewAnyCondition(s1, a3)
+	a4 := NewAnySpecification(s1, a3)
 	fmt.Println(a4.String())
 	if !a4.IsSatisfiedBy(40) {
 		t.FailNow()

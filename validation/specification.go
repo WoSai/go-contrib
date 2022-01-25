@@ -14,114 +14,114 @@ type (
 		String() string
 	}
 
-	AndCondition struct {
+	AndSpecification struct {
 		left  Specification
 		right Specification
 	}
 
-	AndNotCondition struct {
+	AndNotSpecification struct {
 		left  Specification
 		right Specification
 	}
 
-	OrCondition struct {
+	OrSpecification struct {
 		left  Specification
 		right Specification
 	}
 
-	NotCondition struct {
+	NotSpecification struct {
 		spec Specification
 	}
 
-	OrNotCondition struct {
+	OrNotSpecification struct {
 		left  Specification
 		right Specification
 	}
 
-	AllCondition struct {
+	AllSpecification struct {
 		specs []Specification
 	}
 
-	AnyCondition struct {
+	AnySpecification struct {
 		specs []Specification
 	}
 )
 
 var (
-	_ Specification = (*AndCondition)(nil)
-	_ Specification = (*OrCondition)(nil)
-	_ Specification = (*AndNotCondition)(nil)
-	_ Specification = (*OrNotCondition)(nil)
-	_ Specification = (*NotCondition)(nil)
-	_ Specification = (*AllCondition)(nil)
-	_ Specification = (*AndCondition)(nil)
+	_ Specification = (*AndSpecification)(nil)
+	_ Specification = (*OrSpecification)(nil)
+	_ Specification = (*AndNotSpecification)(nil)
+	_ Specification = (*OrNotSpecification)(nil)
+	_ Specification = (*NotSpecification)(nil)
+	_ Specification = (*AllSpecification)(nil)
+	_ Specification = (*AndSpecification)(nil)
 )
 
 func NewAndSpecification(s1, s2 Specification) Specification {
-	return &AndCondition{s1, s2}
+	return &AndSpecification{s1, s2}
 }
 
-func (and *AndCondition) IsSatisfiedBy(candidate interface{}) bool {
+func (and *AndSpecification) IsSatisfiedBy(candidate interface{}) bool {
 	return and.left.IsSatisfiedBy(candidate) && and.right.IsSatisfiedBy(candidate)
 }
 
-func (and *AndCondition) String() string {
+func (and *AndSpecification) String() string {
 	return fmt.Sprintf("(%s) AND (%s)", and.left.String(), and.right.String())
 }
 
-func NewOrCondition(s1, s2 Specification) Specification {
-	return &OrCondition{s1, s2}
+func NewOrSpecification(s1, s2 Specification) Specification {
+	return &OrSpecification{s1, s2}
 }
 
-func (or *OrCondition) IsSatisfiedBy(candidate interface{}) bool {
+func (or *OrSpecification) IsSatisfiedBy(candidate interface{}) bool {
 	return or.left.IsSatisfiedBy(candidate) || or.right.IsSatisfiedBy(candidate)
 }
 
-func (or *OrCondition) String() string {
+func (or *OrSpecification) String() string {
 	return fmt.Sprintf("(%s) OR (%s)", or.left.String(), or.right.String())
 }
 
-func NewAndNotCondition(s1, s2 Specification) Specification {
-	return &AndNotCondition{s1, s2}
+func NewAndNotSpecification(s1, s2 Specification) Specification {
+	return &AndNotSpecification{s1, s2}
 }
 
-func (an *AndNotCondition) IsSatisfiedBy(candidate interface{}) bool {
+func (an *AndNotSpecification) IsSatisfiedBy(candidate interface{}) bool {
 	return an.left.IsSatisfiedBy(candidate) && (!an.right.IsSatisfiedBy(candidate))
 }
 
-func (an *AndNotCondition) String() string {
+func (an *AndNotSpecification) String() string {
 	return fmt.Sprintf("(%s) AND !(%s)", an.left.String(), an.right.String())
 }
 
-func NewNotCondition(spec Specification) Specification {
-	return &NotCondition{spec: spec}
+func NewNotSpecification(spec Specification) Specification {
+	return &NotSpecification{spec: spec}
 }
 
-func (not *NotCondition) IsSatisfiedBy(candidate interface{}) bool {
+func (not *NotSpecification) IsSatisfiedBy(candidate interface{}) bool {
 	return !not.spec.IsSatisfiedBy(candidate)
 }
 
-func (not *NotCondition) String() string {
+func (not *NotSpecification) String() string {
 	return fmt.Sprintf("!(%s)", not.spec.String())
 }
 
-func NewOrNotCondition(s1, s2 Specification) Specification {
-	return &OrNotCondition{s1, s2}
+func NewOrNotSpecification(s1, s2 Specification) Specification {
+	return &OrNotSpecification{s1, s2}
 }
 
-func (on *OrNotCondition) IsSatisfiedBy(candidate interface{}) bool {
+func (on *OrNotSpecification) IsSatisfiedBy(candidate interface{}) bool {
 	return on.left.IsSatisfiedBy(candidate) || (!on.right.IsSatisfiedBy(candidate))
 }
 
-func (on *OrNotCondition) String() string {
+func (on *OrNotSpecification) String() string {
 	return fmt.Sprintf("(%s) OR !(%s)", on.left.String(), on.right.String())
 }
 
-func NewAllCondition(specs ...Specification) Specification {
-	return &AllCondition{specs: specs}
+func NewAllSpecification(specs ...Specification) Specification {
+	return &AllSpecification{specs: specs}
 }
 
-func (all *AllCondition) IsSatisfiedBy(candidate interface{}) bool {
+func (all *AllSpecification) IsSatisfiedBy(candidate interface{}) bool {
 	for _, spec := range all.specs {
 		if !spec.IsSatisfiedBy(candidate) {
 			return false
@@ -130,7 +130,7 @@ func (all *AllCondition) IsSatisfiedBy(candidate interface{}) bool {
 	return true
 }
 
-func (all *AllCondition) String() string {
+func (all *AllSpecification) String() string {
 	rules := make([]string, len(all.specs))
 	for i := 0; i < len(all.specs); i++ {
 		rules[i] = all.specs[i].String()
@@ -138,11 +138,11 @@ func (all *AllCondition) String() string {
 	return fmt.Sprintf("ALL[%s]", strings.Join(rules, ", "))
 }
 
-func NewAnyCondition(specs ...Specification) Specification {
-	return &AnyCondition{specs: specs}
+func NewAnySpecification(specs ...Specification) Specification {
+	return &AnySpecification{specs: specs}
 }
 
-func (any *AnyCondition) IsSatisfiedBy(candidate interface{}) bool {
+func (any *AnySpecification) IsSatisfiedBy(candidate interface{}) bool {
 	for _, spec := range any.specs {
 		if spec.IsSatisfiedBy(candidate) {
 			return true
@@ -151,7 +151,7 @@ func (any *AnyCondition) IsSatisfiedBy(candidate interface{}) bool {
 	return false
 }
 
-func (any *AnyCondition) String() string {
+func (any *AnySpecification) String() string {
 	rules := make([]string, len(any.specs))
 	for i := 0; i < len(any.specs); i++ {
 		rules[i] = any.specs[i].String()
