@@ -41,8 +41,11 @@ func (m *inMemMediator) Subscribe(et EventType, hdl EventHandler) {
 }
 
 func (m *inMemMediator) Dispatch(ctx context.Context, ev Event) {
-	if _, ok := m.handlers[ev.Type()]; !ok && m.orphanEventHandler != nil {
-		m.orphanEventHandler(ev)
+	if _, ok := m.handlers[ev.Type()]; !ok {
+		if m.orphanEventHandler != nil {
+			m.orphanEventHandler(ev)
+			return
+		}
 		return
 	}
 

@@ -8,10 +8,10 @@ import (
 type (
 	// Specification define a interface
 	Specification interface {
+		// // String print the specification details
+		fmt.Stringer
 		// IsSatisfiedBy check if candidate matched the specification
 		IsSatisfiedBy(candidate interface{}) bool
-		// String print the specification details
-		String() string
 	}
 
 	AndSpecification struct {
