@@ -2,6 +2,6 @@ module github.com/wosai/go-contrib/encoding/json
 
 go 1.17
 
-require github.com/wosai/go-contrib/encoding v0.0.0-20220221063328-af316c70d150
+require github.com/wosai/go-contrib/encoding v0.0.1
 
 replace github.com/wosai/go-contrib/encoding => ../
